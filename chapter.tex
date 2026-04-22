@@ -1,0 +1,119 @@
+\chapter{What Is a Data Engineer?}
+A Data Engineer designs, builds, and maintains the data systems that make analytics and reporting possible. In practice, this role transforms raw, fragmented data into reliable, structured datasets that analysts, data scientists, and business teams can trust.
+
+Core responsibilities usually include:
+\begin{itemize}
+    \item Building data pipelines to ingest data from apps, files, APIs, and databases.
+    \item Cleaning and standardizing data so definitions, formats, and quality are consistent.
+    \item Modeling data for analytics (facts, dimensions, star schemas) to improve performance and usability.
+    \item Ensuring data quality, governance, and monitoring to keep reports accurate over time.
+    \item Optimizing storage and query performance for scalable dashboards and BI workloads.
+\end{itemize}
+
+In a Power BI workflow, Data Engineering is the foundation: strong Power Query transformations and clean semantic models are what make insights fast, correct, and actionable.
+
+\chapter{Main Project Roadmap}
+
+\section{Project Overview}
+\textbf{Objective:} To transform raw Uber ride logs into a high-level analytical dashboard that reveals user behavior patterns, travel efficiency, and geographical trends.
+\newline
+\textbf{Dataset Scope:} Jan 2016 -- July 2016 (International and Domestic travel).
+
+\section{Phase I: Advanced Data Engineering (Power Query)}
+This phase focuses on "fascinating" manipulation. Do not just load the data; reshape it to make analysis easier.
+
+\subsection{Step 1: Standardization and Cleaning}
+\begin{itemize}
+    \item \textbf{Date/Time Normalization:} The dataset contains mixed date formats (e.g., `01-01-2016` vs `1/13/2016`). Use Power Query to enforce a single format (DD/MM/YYYY HH:mm).
+    \item \textbf{Text Trimming:} Trim the `START` and `STOP` location columns to remove accidental spaces.
+    \item \textbf{Handling Nulls:} 
+    \begin{itemize}
+        \item In the `PURPOSE` column, replace nulls with `Not Specified`.
+        \item Analyze if the empty `CATEGORY` cells (if any) imply `Personal` trips or data errors.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Step 2: Feature Engineering (Creating New Data)}
+Extract hidden information that does not exist explicitly in the columns.
+\begin{itemize}
+    \item \textbf{Duration Column:} Create a custom column:\[
+\texttt{END\_DATE} - \texttt{START\_DATE}.
+\]
+This gives the duration of each trip in minutes or hours.
+    \item \textbf{Time Attributes:} Extract the following into new columns:
+    \begin{itemize}
+        \item \textit{Start Hour} (0-23) for peak time analysis.
+        \item \textit{Day Name} (Monday, Tuesday...) for weekly trends.
+        \item \textit{Month Name} for seasonal trends.
+    \end{itemize}
+    \item \textbf{Route Concatenation:} Create a new column called `[Route]` by combining Start and Stop locations (e.g., Cary -> Durham). This allows you to find the "Most Popular Route."
+    \item \textbf{Regional Grouping:} The data contains locations like `Karachi`, `Colombo`, `New York`, and `Cary`. 
+    \begin{itemize}
+        \item \textit{Challenge:} Create a conditional column to group these into `Regions` (e.g., "East Coast USA", "International/Asia", "Research Triangle Park"). This will be crucial for the Map visualization.
+    \end{itemize}
+\end{itemize}
+
+\section{Phase II: Data Modeling (DAX Measures)}
+Create calculated measures to perform dynamic aggregations. This is where "Insight Extraction" begins.
+
+\subsection{Step 1: Basic Metrics}
+\begin{itemize}
+    \item \textbf{Total Trips:} Count of rows.
+    \item \textbf{Total Miles:} Sum of the Miles column.
+    \item \textbf{Total Hours:} Sum of the Duration column.
+\end{itemize}
+
+\subsection{Step 2: Efficiency Metrics (Advanced)}
+\begin{itemize}
+    \item \textbf{Average Speed:} (Total Miles / Total Hours). \textit{Warning: Handle division by zero errors.}
+    \item \textbf{Trip Efficiency Index:} Compare miles traveled per purpose. For example, do "Errand/Supplies" take more miles than "Meetings"?
+    \item \textbf{Cost Estimation (Hypothetical):} If the standard rate is \$1.50 per mile + \$5 base, create a calculated column for `Estimated Cost`.
+\end{itemize}
+
+\section{Phase III: The Dashboard Design}
+Organize your report into 3 distinct pages to tell a complete story.
+
+\subsection{Page 1: The Executive Overview}
+\textit{Goal: High-level performance snapshot.}
+\begin{itemize}
+    \item \textbf{KPI Cards:} Total Miles, Total Spend (estimated), and Longest Single Trip.
+    \item \textbf{Main Chart:} A Line chart showing `Trips per Month`.
+    \item \textbf{Secondary Chart:} A Stacked Bar chart showing `Business vs Personal` split over time.
+\end{itemize}
+
+\subsection{Page 2: Behavioral Deep Dive}
+\textit{Goal: Understand when and why the user travels.}
+\begin{itemize}
+    \item \textbf{The "Heatmap":} A Matrix visualization with `Day Name` on rows and `Start Hour` on columns. Color by `Total Trips`. This will visually reveal peak hours (e.g., Friday mornings).
+    \item \textbf{Purpose Analysis:} A Treemap showing `Purpose` sized by `Total Miles`. This makes "Customer Visits" look bigger than "Errands" if they cover more distance.
+    \item \textbf{Category Logic:} Use a Slicer to switch between `Business` and `Personal` views.
+\end{itemize}
+
+\subsection{Page 3: Geography and Routes}
+\textit{Goal: Visualize movement.}
+\begin{itemize}
+    \item \textbf{Map Visualization:} Use the filled map or shape map. 
+    \begin{itemize}
+        \item Use the `Region` column created in Phase I for the Location.
+        \item Use `Total Miles` for bubble size (saturation).
+    \end{itemize}
+    \textbf{Insight:} This will highlight that the user traveled extensively to Asia/Pakistan in Feb/March.
+    \item \textbf{Top Routes Table:} A table visual showing the top 5 `Routes` (created in Phase I) by frequency.
+\end{itemize}
+
+\section{Insight Extraction Checklist}
+Before finalizing the project, ensure your dashboard can answer these specific questions:
+
+\begin{enumerate}
+    \item \textbf{Time Efficiency:} Which day of the week has the highest average trip duration?
+    \item \textbf{Cost Drivers:} Which `PURPOSE` category contributes to the highest percentage of total miles?
+    \item \textbf{Geographical Focus:} Which `Region` (Domestic vs International) consumed the most resources (miles)?
+    \item \textbf{Anomalies:} Are there any trips with unusually high miles but short duration (possible data error)?
+\end{enumerate}
+
+\section{Final Polish}
+\begin{itemize}
+    \item \textbf{Tooltips:} Configure tooltips on your charts. When hovering over a month, show the average miles per trip.
+    \item \textbf{Drilldown:} Allow users to click on a year/month in the charts to see the specific days.
+    \item \textbf{Theme:} Apply a professional "Color" theme (e.g., "Corporate" or "Innovative") to make the dashboard look commercial.
+\end{itemize}
